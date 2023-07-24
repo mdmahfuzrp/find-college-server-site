@@ -1,3 +1,4 @@
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
@@ -9,7 +10,7 @@ const app = express();
 // MiddleWare
 app.use(cors());
 app.use(express.json());
-
+const uri = `mongodb+srv://${process.env.DATA_USER}:${process.env.DATA_PASS}@cluster0.jlpngjm.mongodb.net/?retryWrites=true&w=majority`;
 const verifyJWT = (req, res, next) => {
     const authorization = req.headers.authorization;
 
@@ -28,8 +29,9 @@ const verifyJWT = (req, res, next) => {
 }
 
 
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-const uri = `mongodb+srv://${process.env.DATA_USER}:${process.env.DATA_PASS}@cluster0.jlpngjm.mongodb.net/?retryWrites=true&w=majority`;
+
+
+
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -45,7 +47,7 @@ async function run() {
 
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
 
         const usersCollection = client.db("houseHunter").collection("allUsers");
         const housesCollection = client.db("houseHunter").collection("houses");
@@ -91,13 +93,6 @@ async function run() {
             res.status(200).json({ message: 'Login successful', user });
         })
 
-        // Add House ----------------------------------
-        app.post('/houses', async (req, res) => {
-            const house = req.body;
-            const addNewHouse = await housesCollection.insertOne(house);
-            res.send(addNewHouse);
-        })
-
         // All Houses -----------------------
         app.get('/houses', async (req, res) => {
             const page = parseInt(req.query.page);
@@ -108,6 +103,14 @@ async function run() {
             const result = await housesCollection.find(query).skip(skip).limit(limit).toArray();
             res.send(result);
         });
+
+        // Add House ----------------------------------
+        app.post('/houses', async (req, res) => {
+            const house = req.body;
+            const addNewHouse = await housesCollection.insertOne(house);
+            res.send(addNewHouse);
+        })
+
 
         // Total Houses Count ------------------------
         app.get('/totalHouses', async (req, res) => {
@@ -269,7 +272,7 @@ run().catch(console.dir);
 
 
 app.get('/', (req, res) => {
-    res.send('House Hunter Running with my Dream Job and 2 night Sleep')
+    res.send('House Hunter Running')
 })
 app.listen(port, (req, res) => {
     console.log('Server running on port: ', port)
